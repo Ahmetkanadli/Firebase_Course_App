@@ -2,11 +2,20 @@ import {Text, View, StyleSheet, Pressable} from "react-native";
 import React from "react";
 import {useLayoutEffect} from "react";
 import {AntDesign} from '@expo/vector-icons';
+import {useContext} from "react";
+import {CoursesContext} from "../store/courseContext";
+import CourseForm from "../components/CourseForm";
+import {storeCourse, updateCourse, deleteCourseHttp} from "../helper/http";
 
 export default function ManageCourse({route, navigation}) {
 
     const courseId = route.params?.courseId;
+    const courseContext = useContext(CoursesContext);
+
     let isEditing = false;
+
+    const selectedCourse = courseContext.courses.find((course) => course.id === courseId);
+
 
     if (courseId) {
         isEditing = true;
@@ -18,50 +27,47 @@ export default function ManageCourse({route, navigation}) {
         });
     }, [navigation, isEditing]);
 
-    function deleteCourse() {
+    async  function deleteCourse() {
+        courseContext.deleteCourse(courseId);
+        await deleteCourseHttp(courseId);
         navigation.goBack();
     }
 
-    function  cancelHandler(){
+
+    function cancelHandler() {
+        navigation.goBack();
+    }
+
+    async function addOrUpdateHandler(courseData) {
+        if (isEditing) {
+            courseContext.updateCourse(
+                courseId, courseData);
+            await  updateCourse(courseId,courseData)
+        } else {
+            const id = await storeCourse(courseData);
+            courseContext.addCourse({...courseData,id :id})
+        }
         navigation.goBack();
     }
 
     return (
         <View style={styles.container}>
-
-
-            <View style={styles.buttons}>
-                <Pressable onPress={cancelHandler}>
-                    <View style={styles.cancel}>
-                        <Text style={styles.cancelText}>
-                            İptal Et
-                        </Text>
-                    </View>
-                </Pressable>
-                <Pressable>
-                    <View style={styles.addOrUpdate}>
-                        <Text style={styles.addOrUpdateText}>
-                            {isEditing ? "Kursu Güncelle" : "Kursu Ekle"}
-                        </Text>
-                    </View>
-                </Pressable>
-            </View>
-
-
-            {isEditing &&
-                <View style={styles.deleteContaier}>
-                    <AntDesign name="delete" size={24} color="black" onPress={deleteCourse}/><
-                /View>
-            }
-        </View>
-    );
+            <CourseForm
+                cancelHandler={cancelHandler}
+                onSubmit={addOrUpdateHandler}
+                buttonLabel={isEditing ? "Kursu Güncelle" : "Kursu Ekle"}
+                defaultValues = {selectedCourse}
+            ></CourseForm>
+            {isEditing && <View style={styles.deleteContaier}>
+                <AntDesign name="delete" size={24} color="black" onPress={deleteCourse}/><
+                /View>}
+        </View>);
 }
 
 const styles = StyleSheet.create({
     container: {
         flex: 1,
         padding: 25,
-
     },
     deleteContaier: {
         alignItems: "center",
@@ -69,34 +75,5 @@ const styles = StyleSheet.create({
         paddingTop: 10,
         marginTop: 16
     },
-    buttons : {
-        flexDirection : "row",
-        justifyContent : "center"
-    },
-    cancel : {
-        backgroundColor : 'red',
-        minWidth : 120,
-        marginRight : 30,
-        padding : 8,
-        alignItems : "center",
-        borderRadius : 10,
-    },
-    cancelText : {
-        fontSize : 16,
-        fontWeight : "bold",
-        color:"white",
-    },
-    addOrUpdate : {
-        backgroundColor : 'darkblue',
-        minWidth : 120,
-        marginRight : 30,
-        padding : 8,
-        alignItems : "center",
-        borderRadius : 10,
-    },
-    addOrUpdateText : {
-        fontSize : 16,
-        fontWeight : "bold",
-        color:"white",
-    }
+
 })

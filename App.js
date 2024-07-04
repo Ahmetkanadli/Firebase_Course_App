@@ -8,6 +8,7 @@ import RecentCourse from "./screens/RecentCourse";
 import AllCourses from "./screens/AllCourse";
 import { Entypo } from '@expo/vector-icons';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
+import CoursesContextProvider from "./store/courseContext";
 
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -61,16 +62,18 @@ function CourseOverview() {
 
 export default function App() {
     return (
-        <NavigationContainer>
-            <Stack.Navigator>
-                <Stack.Screen
-                    name="CourseOverview"
-                    component={CourseOverview}
-                    options={{ headerShown: false }}
-                />
-                <Stack.Screen name="ManageCourse" component={ManageCourse} />
-            </Stack.Navigator>
-        </NavigationContainer>
+        <CoursesContextProvider>
+            <NavigationContainer>
+                <Stack.Navigator>
+                    <Stack.Screen
+                        name="CourseOverview"
+                        component={CourseOverview}
+                        options={{ headerShown: false }}
+                    />
+                    <Stack.Screen name="ManageCourse" component={ManageCourse} />
+                </Stack.Navigator>
+            </NavigationContainer>
+        </CoursesContextProvider>
     );
 }
 

@@ -1,5 +1,5 @@
 import {View, Text, Pressable,StyleSheet} from "react-native";
-import {getFormatDate} from "../helper/date";
+import { getFormattedDate} from "../helper/date";
 import {useNavigation} from "@react-navigation/native";
 
 export default function  CourseItem({amount,date,description,id}) {
@@ -17,7 +17,7 @@ export default function  CourseItem({amount,date,description,id}) {
             <View style={styles.courseContainer}>
                 <View style={styles.descriptionContainer}>
                     <Text style={styles.description}>{description}</Text>
-                    <Text>{getFormatDate(date)}</Text>
+                    <Text>{getFormattedDate(date)}</Text>
                 </View>
                 <View style={styles.priceContainer}>
                     <Text style={styles.price}>{amount + '  TL'}</Text>

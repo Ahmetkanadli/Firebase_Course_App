@@ -1,72 +1,13 @@
-// React'ten createContext fonksiyonunu içe aktarıyoruz.
-import { createContext } from 'react';
-// @babel/core'den stat fonksiyonunu içe aktarıyoruz (bu örnekte kullanılmamış).
-import { stat } from "@babel/core/lib/gensync-utils/fs";
+import { createContext, useReducer } from 'react';
 
-// Sabit bir kurs listesi tanımlıyoruz.
-const COURSES = [
-    {
-        id: '1',
-        description: 'C Programlama',
-        amount: 69,
-        date: new Date('2023-01-05'),
-    },
-    {
-        id: '2',
-        description: 'C# Programlama',
-        amount: 69,
-        date: new Date('2023-04-10'),
-    },
-    {
-        id: '3',
-        description: 'Angular',
-        amount: 69,
-        date: new Date('2022-12-08'),
-    },
-    {
-        id: '4',
-        description: 'Bootstrap 5',
-        amount: 69,
-        date: new Date('2022-10-10'),
-    },
-    {
-        id: '5',
-        description: 'React Js',
-        amount: 69,
-        date: new Date('2023-05-20'),
-    },
-    {
-        id: '6',
-        description: 'React Native',
-        amount: 69,
-        date: new Date('2023-07-30'),
-    },
-    {
-        id: '7',
-        description: 'Javascript',
-        amount: 69,
-        date: new Date('2023-06-12'),
-    },
-    {
-        id: '8',
-        description: 'Komple Web',
-        amount: 69,
-        date: new Date('2021-10-22'),
-    },
-    {
-        id: '9',
-        description: 'Frontend',
-        amount: 69,
-        date: new Date('2022-11-25'),
-    },
-];
 
-// Kursları ve kurs yönetim fonksiyonlarını içeren bir context oluşturuyoruz.
+
 export const CoursesContext = createContext({
     courses: [],
-    addCourse: ({ description, amount, date }) => { },
-    deleteCourse: ({ id }) => { },
-    updateCourse: (id, { description, amount, date }) => { },
+    addCourse: ({ description, amount, date }) => {},
+    deleteCourse: (id) => {},
+    setCourses: (courses) => {},
+    updateCourse: (id, { description, amount, date }) => {},
 });
 
 // Kurs yönetim işlemlerini gerçekleştiren reducer fonksiyonu tanımlıyoruz.
@@ -75,12 +16,14 @@ function coursesReducer(state, action) {
         // Yeni bir kurs ekleme işlemi
         case 'ADD':
             const id = new Date().toDateString() + Math.random().toString();
-            return [{ ...action.payload, id: id }, ...state];
+            return [action.payload, ...state];
 
         // Kurs silme işlemi
         case 'DELETE':
             return state.filter(course => course.id !== action.payload);
-
+        case 'SET' :
+            const reversedData = action.payload.reverse();
+            return  reversedData;
         // Kurs güncelleme işlemi
         case 'UPDATE':
             // Güncellenecek kursun indeksini buluyoruz
@@ -113,37 +56,33 @@ function coursesReducer(state, action) {
     }
 }
 
-// CoursesContextProvider bileşenini tanımlıyoruz
 function CoursesContextProvider({ children }) {
-    // useReducer hook'u ile coursesReducer fonksiyonunu ve başlangıç durumunu kullanıyoruz
-    const [coursesState, dispatch] = useReducer(coursesReducer, COURSES);
+    const [coursesState, dispatch] = useReducer(coursesReducer, []);
 
-    // Yeni bir kurs eklemek için fonksiyon
     function addCourse(courseData) {
         dispatch({ type: 'ADD', payload: courseData });
     }
-
-    // Bir kursu silmek için fonksiyon
     function deleteCourse(id) {
         dispatch({ type: 'DELETE', payload: id });
     }
-
-    // Bir kursu güncellemek için fonksiyon
+    function setCourses(courses) {
+        dispatch({type : 'SET',payload :courses})
+    }
     function updateCourse(id, courseData) {
         dispatch({ type: 'UPDATE', payload: { id: id, data: courseData } });
     }
 
-    // Context'in değerini tanımlıyoruz
     const value = {
         courses: coursesState,
         addCourse: addCourse,
         deleteCourse: deleteCourse,
+        setCourses : setCourses,
         updateCourse: updateCourse,
     };
 
-    // CoursesContext.Provider bileşenini döndürüyoruz ve çocuk bileşenleri içine alıyoruz
-    return <CoursesContext.Provider value={value}>{children}</CoursesContext.Provider>
+    return (
+        <CoursesContext.Provider value={value}>{children}</CoursesContext.Provider>
+    );
 }
 
-// CoursesContextProvider bileşenini dışa aktarıyoruz
 export default CoursesContextProvider;
