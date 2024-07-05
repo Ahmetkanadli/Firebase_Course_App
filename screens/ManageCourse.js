@@ -1,13 +1,11 @@
-import {Text, View, StyleSheet, Pressable} from "react-native";
-import React from "react";
-import {useLayoutEffect} from "react";
-import {AntDesign} from '@expo/vector-icons';
-import {useContext} from "react";
-import {CoursesContext} from "../store/courseContext";
+import { Text, View, StyleSheet, Pressable } from "react-native";
+import React, { useContext, useLayoutEffect } from "react";
+import { AntDesign } from '@expo/vector-icons';
+import { CoursesContext } from "../store/courseContext";
 import CourseForm from "../components/CourseForm";
-import {storeCourse, updateCourse, deleteCourseHttp} from "../helper/http";
+import { storeCourse, updateCourse, deleteCourseHttp, logAsyncStorageData } from "../helper/http";
 
-export default function ManageCourse({route, navigation}) {
+export default function ManageCourse({ route, navigation }) {
 
     const courseId = route.params?.courseId;
     const courseContext = useContext(CoursesContext);
@@ -15,7 +13,6 @@ export default function ManageCourse({route, navigation}) {
     let isEditing = false;
 
     const selectedCourse = courseContext.courses.find((course) => course.id === courseId);
-
 
     if (courseId) {
         isEditing = true;
@@ -25,27 +22,39 @@ export default function ManageCourse({route, navigation}) {
         navigation.setOptions({
             title: isEditing ? "Kursu Güncelle" : "Kursu Ekle",
         });
+        logAsyncStorageData();
     }, [navigation, isEditing]);
 
-    async  function deleteCourse() {
+    async function deleteCourse() {
         courseContext.deleteCourse(courseId);
         await deleteCourseHttp(courseId);
-        navigation.goBack();
+        if (navigation.canGoBack()) {
+            navigation.goBack();
+        } else {
+            console.warn('No screens to go back to');
+        }
     }
 
-
     function cancelHandler() {
-        navigation.goBack();
+        if (navigation.canGoBack()) {
+            navigation.goBack();
+        } else {
+            console.warn('No screens to go back to');
+        }
     }
 
     async function addOrUpdateHandler(courseData) {
         if (isEditing) {
-            courseContext.updateCourse(
-                courseId, courseData);
-            await  updateCourse(courseId,courseData)
+            courseContext.updateCourse(courseId, courseData);
+            await updateCourse(courseId, courseData);
         } else {
             const id = await storeCourse(courseData);
-            courseContext.addCourse({...courseData,id :id})
+            courseContext.addCourse({ ...courseData, id: id });
+        }
+        if (navigation.canGoBack()) {
+            navigation.goBack();
+        } else {
+            console.warn('No screens to go back to');
         }
         navigation.goBack();
     }
@@ -56,12 +65,15 @@ export default function ManageCourse({route, navigation}) {
                 cancelHandler={cancelHandler}
                 onSubmit={addOrUpdateHandler}
                 buttonLabel={isEditing ? "Kursu Güncelle" : "Kursu Ekle"}
-                defaultValues = {selectedCourse}
-            ></CourseForm>
-            {isEditing && <View style={styles.deleteContaier}>
-                <AntDesign name="delete" size={24} color="black" onPress={deleteCourse}/><
-                /View>}
-        </View>);
+                defaultValues={selectedCourse}
+            />
+            {isEditing && (
+                <View style={styles.deleteContaier}>
+                    <AntDesign name="delete" size={24} color="black" onPress={deleteCourse} />
+                </View>
+            )}
+        </View>
+    );
 }
 
 const styles = StyleSheet.create({
@@ -75,5 +87,4 @@ const styles = StyleSheet.create({
         paddingTop: 10,
         marginTop: 16
     },
-
-})
+});
